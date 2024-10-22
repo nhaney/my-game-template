@@ -1,5 +1,5 @@
 {
-    description = "Flake for running sokol samples";
+    description = "My game template flake";
 
     inputs = {
         nixpkgs = {
@@ -13,8 +13,9 @@
     outputs = { nixpkgs, flake-utils, ... }:
         flake-utils.lib.eachDefaultSystem(system:
             let
-                # pkgs = import nixpkgs { inherit system; overlays = [ (final: prev: { raylib = prev.raylib.override { sharedLib = false ;}; })]; };
                 pkgs = import nixpkgs { inherit system; };
+                # Example of overriding raylib:
+                # pkgs = import nixpkgs { inherit system; overlays = [ (final: prev: { raylib = prev.raylib.override { sharedLib = false ;}; })]; };
             in
             {
                 packages = {
@@ -22,16 +23,20 @@
                 };
 
                 devShells.default = pkgs.mkShell rec {
-                    packages = with pkgs; [
-                        # raylib dependency
+                    cLibs = with pkgs; [
                         raylib
+                    ];
+
+                    packages = with pkgs; [
+                        # for debugging
+                        gdb
                         # zig for attempted build of c code with zig cc
                         zig
                         # Extra dependencies needed for WASM builds
                         emscripten
-                    ];
+                    ] ++ cLibs;
 
-                    LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath packages;
+                    LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath cLibs;
                 };
             }
         );
